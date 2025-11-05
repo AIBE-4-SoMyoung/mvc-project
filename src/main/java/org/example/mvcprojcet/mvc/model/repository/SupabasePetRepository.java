@@ -18,13 +18,26 @@ public class SupabasePetRepository implements PetRepository {
     private final String apiKey;
 
     public SupabasePetRepository() {
-        Dotenv dotenv = Dotenv
-                .configure()
-                .directory("C:/exercise/mvc-projcet") // 프로젝트 루트 절대 경로
-                .ignoreIfMissing() // dotenv 없으면 환경변수 불러오겠다
-                .load();
-        apiURL = dotenv.get("SUPABASE_URL");
-        apiKey = dotenv.get("SUPABASE_KEY");
+        // 로컬 개발: .env 파일 로드, 프로덕션: 시스템 환경변수 사용
+        Dotenv dotenv = null;
+        try {
+            dotenv = Dotenv
+                    .configure()
+                    .directory(System.getProperty("user.dir")) // 현재 작업 디렉토리 사용
+                    .ignoreIfMissing() // .env 파일이 없으면 시스템 환경변수 사용
+                    .load();
+        } catch (Exception e) {
+            System.err.println(".env file not found, using system environment variables");
+        }
+
+        // .env 파일이 있으면 사용, 없으면 시스템 환경변수 사용
+        if (dotenv != null) {
+            apiURL = dotenv.get("SUPABASE_URL");
+            apiKey = dotenv.get("SUPABASE_KEY");
+        } else {
+            apiURL = System.getenv("SUPABASE_URL");
+            apiKey = System.getenv("SUPABASE_KEY");
+        }
 
         // 디버깅용 로그
         if (apiURL == null || apiURL.isBlank()) {
